@@ -123,7 +123,7 @@ module.exports = exports = class Router {
         const validRoutes = this.routes.filter((route) => { return route.method.toUpperCase() === req.method.toUpperCase() });
 
         if (validRoutes.length === 0) {
-            send(res, 405, 'Method not alllowed.');
+            send(res, 405, 'Method not allowed.');
             return;
         }
 
@@ -155,7 +155,7 @@ module.exports = exports = class Router {
                 return;
             }
         } else {
-            send(res, 405, 'Method not allowed.');
+            send(res, 404, 'Route not found.');
             return;
         }
     }
