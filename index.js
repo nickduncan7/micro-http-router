@@ -1,152 +1,141 @@
 'use strict';
 
 const { send } = require('micro');
-const UrlPattern = require('url-pattern');
-const methods = require('./src/methods');
+const RadixRouter = require('radix-router');
+const assert = require('assert');
 
-const s_addRoute = Symbol();
+const routerSymbol = Symbol();
 
 module.exports = exports = class Router {
-    constructor() {
-        this.routes = [];
+    constructor(options) {
+        // Add new instance of RadixRouter
+        this[routerSymbol] = new RadixRouter({ strict: options && options.strict });
+    }
 
-        this[s_addRoute] = function (route, method, handler, ...args) {
-            if (!route) throw new Error('\'' + route + '\' is not a valid route.');
-            if (!handler) throw new Error('You must provide a valid route handler function.');
+    /**
+     * Adds a route handler to the router.
+     * @param {object} options The route information and handler
+     */
+    route(options) {
+        assert(options, 'You must provide a valid route options object.')
+        assert(options.path, 'You must provide a valid path.');
+        assert(options.method, 'You must provide a valid route handler function.');        
+        assert(options.handler, 'You must provide a valid route handler function.');
 
-            const pattern = new UrlPattern(route);
-            this.routes.push({
-                route: route,
-                method: method,
-                pattern: pattern,
-                handler: handler
-            });
-        }
+        let existingRoute = this[routerSymbol].lookup(options.path);
+
+        if (existingRoute) {
+            existingRoute.handlers[options.method.toLowerCase()] = options.handler;
+        } else {
+            let route = {
+                path: options.path,
+                handlers: {}
+            };
+
+            route.handlers[options.method.toLowerCase()] = options.handler;
+
+            this[routerSymbol].insert(route);
+        };
+
+        return this;
     }
 
     /**
      * Chains a HTTP "GET" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    get(route, handler) {
-        this[s_addRoute](route, methods.get, handler);
-        return this;
+    get(path, handler) {
+        return this.route({ path: path, method: 'GET', handler: handler});
     }
 
     /**
      * Chains a HTTP "HEAD" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    head(route, handler) {
-        this[s_addRoute](route, methods.head, handler);
-        return this;
+    head(path, handler) {
+        return this.route({ path: path, method: 'HEAD', handler: handler});
     }
 
     /**
      * Chains a HTTP "POST" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    post(route, handler) {
-        this[s_addRoute](route, methods.post, handler);
-        return this;
+    post(path, handler) {
+        return this.route({ path: path, method: 'POST', handler: handler});
     }
 
     /**
      * Chains a HTTP "PUT" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    put(route, handler) {
-        this[s_addRoute](route, methods.put, handler);
-        return this;
+    put(path, handler) {
+        return this.route({ path: path, method: 'PUT', handler: handler});
     }
 
     /**
      * Chains a HTTP "DELETE" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    delete(route, handler) {
-        this[s_addRoute](route, methods.delete, handler);
-        return this;
+    delete(path, handler) {
+        return this.route({ path: path, method: 'DELETE', handler: handler});
     }
 
     /**
      * Chains a HTTP "CONNECT" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    connect(route, handler) {
-        this[s_addRoute](route, methods.connect, handler);
-        return this;
+    connect(path, handler) {
+        return this.route({ path: path, method: 'CONNECT', handler: handler});
     }
 
     /**
      * Chains a HTTP "OPTIONS" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    options(route, handler) {
-        this[s_addRoute](route, methods.options, handler);
-        return this;
+    options(path, handler) {
+        return this.route({ path: path, method: 'OPTIONS', handler: handler});
     }
 
     /**
      * Chains a HTTP "TRACE" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    trace(route, handler) {
-        this[s_addRoute](route, methods.trace, handler);
-        return this;
+    trace(path, handler) {
+        return this.route({ path: path, method: 'TRACE', handler: handler});
     }
 
     /**
      * Chains a HTTP "PATCH" route handler to the router object.
-     * @param {String} route 
+     * @param {String} path 
      * @param {Function} handler 
      */
-    patch(route, handler) {
-        this[s_addRoute](route, methods.patch, handler);
-        return this;
+    patch(path, handler) {
+        return this.route({ path: path, method: 'PATCH', handler: handler});
     }
 
     /**
-     * Routes HTTP traffic according to the route handler chain.
+     * Handles HTTP traffic according to the router.
      * @param {object} req http.incomingMessage
      * @param {object} res http.serverResponse
      */
-    async route(req, res) {
-        const validRoutes = this.routes.filter((route) => { return route.method.toUpperCase() === req.method.toUpperCase() });
+    async handle(req, res) {
+        const route = this[routerSymbol].lookup(req.url);
 
-        if (validRoutes.length === 0) {
-            send(res, 405, 'Method not allowed.');
-            return;
-        }
-
-        let routeExists = false;
-        let route = {};
-
-        for (let i = 0; i < validRoutes.length; i++) {
-            const params = validRoutes[i].pattern.match(req.url);
-
-            // If params is truthy, we have a match.
-            // This also doubles as our route params object.
-            if (params) {
-                routeExists = true;
-                req.params = params;
-                route = validRoutes[i];
-                break;
-            } 
-        }
-
-        if (routeExists) {
+        if (route && req.method.toLowerCase() in route.handlers) {
             try {
+                // Set the params if we have any
+                if (route.params) req.params = route.params;
+
                 // Finally, handle the result
-                let result = await route.handler(req, res);
+                let result = await route.handlers[req.method.toLowerCase()](req, res);
                 send(res, 200, result);
                 return;
             } catch (e) {

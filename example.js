@@ -9,8 +9,9 @@ router
         return 'Hello, world';
     })
     // GET request with route parameter
-    .get('/hello/:foo/world/:bar', (req, res) => {
-        return `Your first parameter is ${ req.params.foo } and your second parameter is ${ req.params.bar }.`;
+    .get('/user/:id', (req, res) => {
+        let id = req.params[0];
+        return `Your ID was ${ id }.`;
     })
     // POST with async body parsing
     .post('/', async (req, res) => {
@@ -19,9 +20,12 @@ router
     })
     // Delete with route parameter
     .delete('/entity/:id', (req, res) => {
-        //deleteEntityById(req.params.id);
-        return `Entity with ID ${ req.params.id } deleted.`;
+        let id = req.params[0];
+        //deleteEntityById(id);
+        return `Entity with ID ${ id } deleted.`;
     });
 
-const server = micro((req, res) => router.route(req, res));
-server.listen(3000);
+const server = micro((req, res) => router.handle(req, res));
+const port = 3000;
+server.listen(port);
+console.log(`micro is listening on port: ${ port }`);

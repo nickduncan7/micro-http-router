@@ -1,5 +1,5 @@
 # micro-http-router
-micro-http-router is a simple, Express-like router for [micro](https://github.com/zeit/micro). It supports most, if not all, of the HTTP verbs and tries to be as lightweight and quick as possible.
+micro-http-router is a simple, Express-like router for [micro](https://github.com/zeit/micro) that uses a radix tree via [radix-router](https://github.com/charlieduong94/radix-router). It supports most, if not all, of the HTTP verbs and tries to be as lightweight and quick as possible.
 
 ## Installation
 micro-http-router is an npm package and you should have the latest Node.js and npm installed.
@@ -14,7 +14,7 @@ https://www.npmjs.com/package/micro-http-router
 
 ```javascript
 const micro = require('micro');
-const Router = require('micro-http-router');
+const Router = require('./');
 
 let router = new Router();
 
@@ -23,9 +23,10 @@ router
     .get('/', (req, res) => {
         return 'Hello, world';
     })
-    // GET request with two route parameters
-    .get('/hello/:foo/world/:bar', (req, res) => {
-        return `Your first parameter is ${ req.params.foo } and your second parameter is ${ req.params.bar }.`;
+    // GET request with route parameter
+    .get('/user/:id', (req, res) => {
+        let id = req.params[0];
+        return `Your ID was ${ id }.`;
     })
     // POST with async body parsing
     .post('/', async (req, res) => {
@@ -34,14 +35,23 @@ router
     })
     // Delete with route parameter
     .delete('/entity/:id', (req, res) => {
-        //deleteEntityById(req.params.id);
-        return `Entity with ID ${ req.params.id } deleted.`;
+        let id = req.params[0];
+        //deleteEntityById(id);
+        return `Entity with ID ${ id } deleted.`;
     });
 
-// Start micro on port 3000
-const server = micro((req, res) => router.route(req, res));
-server.listen(3000);
+const server = micro((req, res) => router.handle(req, res));
+const port = 3000;
+server.listen(port);
+console.log(`micro is listening on port: ${ port }`);
 ```
+
+## Tests
+`micro-http-router` comes with a few [AVA](https://github.com/avajs/ava) tests to help ensure correct routing behavior.
+
+To execute the tests yourself, simply run:
+
+`npm test`
 
 ## License
 MIT License

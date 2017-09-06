@@ -1,18 +1,28 @@
 {
   "name": "micro-http-router",
-  "version": "0.0.1",
-  "description": "A tiny, simple and easy router package for Micro.",
+  "version": "1.0.0",
+  "description": "A tiny, simple, fast and easy router package for Micro.",
   "main": "index.js",
   "scripts": {
-    "dev": "micro-dev"
+    "dev": "micro-dev",
+    "test": "ava"
   },
   "author": "Nick Duncan <me@protosev.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/protocol114/micro-http-router"
+  },
   "license": "MIT",
   "devDependencies": {
-    "micro-dev": "^1.2.2"
+    "ava": "^0.22.0",
+    "micro-dev": "^1.2.2",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1",
+    "test-listen": "^1.0.2"
   },
   "dependencies": {
+    "assert": "^1.4.1",
     "micro": "^8.0.4",
-    "url-pattern": "^1.0.3"
+    "radix-router": "^2.0.0"
   }
 }
