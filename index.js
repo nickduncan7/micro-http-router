@@ -50,15 +50,6 @@ module.exports = exports = class Router {
     }
 
     /**
-     * Chains a HTTP "HEAD" route handler to the router object.
-     * @param {String} path 
-     * @param {Function} handler 
-     */
-    head(path, handler) {
-        return this.route({ path: path, method: 'HEAD', handler: handler});
-    }
-
-    /**
      * Chains a HTTP "POST" route handler to the router object.
      * @param {String} path 
      * @param {Function} handler 
@@ -83,15 +74,6 @@ module.exports = exports = class Router {
      */
     delete(path, handler) {
         return this.route({ path: path, method: 'DELETE', handler: handler});
-    }
-
-    /**
-     * Chains a HTTP "CONNECT" route handler to the router object.
-     * @param {String} path 
-     * @param {Function} handler 
-     */
-    connect(path, handler) {
-        return this.route({ path: path, method: 'CONNECT', handler: handler});
     }
 
     /**
@@ -139,7 +121,6 @@ module.exports = exports = class Router {
                 send(res, 200, result);
                 return;
             } catch (e) {
-                console.log(e);
                 send(res, 500);
                 return;
             }

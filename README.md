@@ -14,32 +14,40 @@ https://www.npmjs.com/package/micro-http-router
 
 ```javascript
 const micro = require('micro');
-const Router = require('./');
+const Router = require('micro-http-router');
 
-let router = new Router();
+// Initialize the router
+const router = new Router();
 
-router
-    // Standard GET request
-    .get('/', (req, res) => {
+// Define a basic GET request
+router.route({
+    path: '/',
+    method: 'GET',
+    handler: (req, res) => {
         return 'Hello, world';
-    })
-    // GET request with route parameter
-    .get('/user/:id', (req, res) => {
-        let id = req.params[0];
-        return `Your ID was ${ id }.`;
-    })
-    // POST with async body parsing
-    .post('/', async (req, res) => {
-        const body = await micro.json(req);
-        return body;
-    })
-    // Delete with route parameter
-    .delete('/entity/:id', (req, res) => {
-        let id = req.params[0];
-        //deleteEntityById(id);
-        return `Entity with ID ${ id } deleted.`;
-    });
+    }
+});
 
+// Express-like routing helpers
+router.get('/', (req, res) => {
+    return 'Hello, world';
+});
+
+// Async body parsing
+router.post('/', async (req, res) => {
+    const body = await micro.json(req);
+    return body;
+});
+
+// Any number of route parameters are supported
+// Access via the req.params array
+router.get('/:first/:second', (req, res) => {
+    const first = req.params[0];
+    const second = req.params[1];
+    return `Your first parameter is ${ first } and your second is ${ second }.`;
+});
+
+// Start micro and listen
 const server = micro((req, res) => router.handle(req, res));
 const port = 3000;
 server.listen(port);

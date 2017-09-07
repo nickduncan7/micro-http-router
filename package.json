@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "micro-dev",
-    "test": "ava"
+    "test": "nyc ava"
   },
   "author": "Nick Duncan <me@protosev.com>",
   "repository": {
@@ -15,9 +15,12 @@
   "license": "MIT",
   "devDependencies": {
     "ava": "^0.22.0",
+    "coveralls": "^2.13.1",
     "micro-dev": "^1.2.2",
+    "nyc": "^11.2.1",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
+    "sleep-promise": "^2.0.0",
     "test-listen": "^1.0.2"
   },
   "dependencies": {

@@ -2,6 +2,7 @@ const { test } = require('ava');
 const micro = require('micro');
 const listen = require('test-listen');
 const request = require('request-promise');
+const sleep = require('sleep-promise');
 const Router = require('./');
 
 test('simple request handled successfully', async t => {
@@ -24,6 +25,131 @@ test('simple request handled successfully', async t => {
 
     // Perform the test check
     t.deepEqual(JSON.parse(response).success, true);
+
+    // Close the service
+    service.close();
+});
+
+test('all HTTP methods are successful', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+    
+    const methods = [
+        'get',
+        'post',
+        'put',
+        'delete',
+        'options',
+        'trace',
+        'patch'
+    ];
+
+    router.get('/', (req, res) => {
+        micro.send(res, 200, 'get');
+    });
+    router.post('/', (req, res) => {
+        micro.send(res, 200, 'post');
+    });
+    router.put('/', (req, res) => {
+        micro.send(res, 200, 'put');
+    });
+    router.delete('/', (req, res) => {
+        micro.send(res, 200, 'delete');
+    });
+    router.options('/', (req, res) => {
+        micro.send(res, 200, 'options');
+    });
+    router.trace('/', (req, res) => {
+        micro.send(res, 200, 'trace');
+    });
+    router.patch('/', (req, res) => {
+        micro.send(res, 200, 'patch');
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/'
+    const url = await listen(service);
+
+    for (const method of methods) {
+        const response = await request({
+            uri: url,
+            method: method
+        });
+
+        // Perform the test check
+        t.deepEqual(response, method);
+
+        // wait 50 ms to allow requests to complete
+        await sleep(50);
+    }
+    
+    // Close the service
+    service.close();
+});
+
+test('strict mode works correctly', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router({strict: true});
+
+    // Configure the routes
+    router.get('/strict', (req, res) => {
+        micro.send(res, 200, {
+            success: true
+        });
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/'
+    const url = await listen(service);
+    const response = await request(`${ url }/strict`);
+
+    // Perform the test check
+    t.deepEqual(JSON.parse(response).success, true);
+
+    try {
+        response = await request(`${ url }/strict/`);
+    } catch (e) {
+        if (e && e.statusCode && e.statusCode === 404) {
+            t.pass();
+        } else {
+            t.fail();
+        }
+    }
+
+    // Close the service
+    service.close();
+});
+
+test('error in handler logic handled successfully', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the routes
+    router.get('/', (req, res) => {
+        throw new Error();
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/'
+    const url = await listen(service);
+
+    // Perform the test check
+    // In try/catch block since the request promise will fail
+    try {
+        const response = await request(url);
+    } catch (e) {
+        if (e && e.statusCode && e.statusCode === 500) {
+            t.pass();
+        } else {
+            t.fail();
+        }
+    }
 
     // Close the service
     service.close();
@@ -61,7 +187,7 @@ test('error 404 when no route found', async t => {
     service.close();
 });
 
-test('correct route selected with multiple routes defines', async t => {
+test('correct route selected with multiple routes defined', async t => {
     // Create new instance of micro-http-router
     const router = new Router();
 
@@ -161,6 +287,60 @@ test('route handlers can be overridden correctly', async t => {
     t.notDeepEqual(response, 'bar');
     t.deepEqual(response, 'baz');
 
+    // Close the service
+    service.close();
+});
+
+test('request parameters are mapped correctly', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the route
+    router.get('/:zero/:one/:two/:three', (req, res) => {
+        micro.send(res, 200, [
+            req.params[0],
+            req.params[1],
+            req.params[2],
+            req.params[3]
+        ]);
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request
+    const url = await listen(service);
+
+    const response = await request(`${ url }/zero/one/two/three`);
+    t.deepEqual(JSON.parse(response)[0], 'zero');
+    t.deepEqual(JSON.parse(response)[1], 'one');
+    t.deepEqual(JSON.parse(response)[2], 'two');
+    t.deepEqual(JSON.parse(response)[3], 'three');
+    
+    // Close the service
+    service.close();
+});
+
+test('request parameters load test', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the route
+    router.get('/:number', (req, res) => {
+        micro.send(res, 200, req.params[0]);
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/:number'
+    const url = await listen(service);
+
+    for (let i = 0; i < 100; i++) {
+        const response = await request(`${ url }/${ i }`);
+        t.deepEqual(response, i.toString());
+    }
+    
     // Close the service
     service.close();
 });
