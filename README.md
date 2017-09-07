@@ -1,4 +1,6 @@
 # micro-http-router
+[![Build Status](https://travis-ci.org/protocol114/micro-http-router.svg?branch=master)](https://travis-ci.org/protocol114/micro-http-router) [![Coverage Status](https://coveralls.io/repos/github/protocol114/micro-http-router/badge.svg?branch=master)](https://coveralls.io/github/protocol114/micro-http-router?branch=master)
+
 micro-http-router is a simple, Express-like router for [micro](https://github.com/zeit/micro) that uses a radix tree via [radix-router](https://github.com/charlieduong94/radix-router). It supports most, if not all, of the HTTP verbs and tries to be as lightweight and quick as possible.
 
 ## Installation
