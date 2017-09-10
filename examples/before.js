@@ -4,18 +4,24 @@ const Router = require('../');
 // Initialize the router
 const router = new Router();
 
+const beforeHandler = function (req, res) {
+    req.user = {};
+    req.user.name = 'John Doe';
+}
+
 // Define a basic GET request with a middleware function
 router.route({
     path: '/',
     method: 'GET',
-    before: (req, res) => {
-        req.user = {};
-        req.user.name = 'John Doe';
-    },
+    before: beforeHandler,
     handler: (req, res) => {
-        console.log(req.user);
         return `Hello, ${ req.user.name }`;
     }
+});
+
+// or define it with your get shorthand
+router.get('/', beforeHandler, (req, res) => {
+    return `Hello, ${ req.user.name }`;
 });
 
 // Start micro and listen

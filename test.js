@@ -374,3 +374,30 @@ test('before request works correctly', async t => {
     // Close the service
     service.close();
 });
+
+test('before request using http method shorthand works correctly', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    const beforeHandler = (req, res) => {
+        req.testdata = 'foobar';
+    }
+
+    // Configure the routes
+    router.get('/', beforeHandler, (req, res) => {
+        return req.testdata;
+    });    
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/'
+    const url = await listen(service);
+    const response = await request(url);
+
+    // Perform the test check
+    t.deepEqual(response, 'foobar');
+
+    // Close the service
+    service.close();
+});

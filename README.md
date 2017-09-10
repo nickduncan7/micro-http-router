@@ -1,7 +1,7 @@
 # micro-http-router
 [![Build Status](https://travis-ci.org/protocol114/micro-http-router.svg?branch=master)](https://travis-ci.org/protocol114/micro-http-router) [![Coverage Status](https://coveralls.io/repos/github/protocol114/micro-http-router/badge.svg?branch=master)](https://coveralls.io/github/protocol114/micro-http-router?branch=master)
 
-micro-http-router is a simple, Express-like router for [micro](https://github.com/zeit/micro) that uses a radix tree via [radix-router](https://github.com/charlieduong94/radix-router). It supports most, if not all, of the HTTP verbs and tries to be as lightweight and quick as possible.
+micro-http-router is a simple, Express-like router for [micro](https://github.com/zeit/micro) that uses a radix tree via [radix-router](https://github.com/charlieduong94/radix-router). It supports most, if not all, of the HTTP verbs, and tries to be as lightweight and quick as possible.
 
 ## Installation
 micro-http-router is an npm package and you should have the latest Node.js and npm installed.
@@ -30,6 +30,19 @@ router.route({
     }
 });
 
+// Define a basic GET request with a middleware function
+router.route({
+    path: '/',
+    method: 'GET',
+    before: (req, res) => {
+        req.user = {};
+        req.user.name = 'John Doe';
+    },
+    handler: (req, res) => {
+        return `Hello, ${ req.user.name }`;
+    }
+});
+
 // Express-like routing helpers
 router.get('/', (req, res) => {
     return 'Hello, world';
@@ -47,6 +60,38 @@ router.get('/:first/:second', (req, res) => {
     const first = req.params[0];
     const second = req.params[1];
     return `Your first parameter is ${ first } and your second is ${ second }.`;
+});
+
+// Start micro and listen
+const server = micro((req, res) => router.handle(req, res));
+const port = 3000;
+server.listen(port);
+console.log(`micro is listening on port: ${ port }`);
+```
+
+## Changelog (1.0.1 => 1.1.0)
+Added `before` option to route options. This serves as a single layer of middleware allowing you to do the following:
+
+```javascript
+const micro = require('micro');
+const Router = require('micro-http-router');
+
+// Initialize the router
+const router = new Router();
+
+// Define a basic GET request with a middleware function
+router.route({
+    path: '/',
+    method: 'GET',
+    before: beforeHandler,
+    handler: (req, res) => {
+        return `Hello, ${ req.user.name }`;
+    }
+});
+
+// or define it with your get shorthand
+router.get('/', beforeHandler, (req, res) => {
+    return `Hello, ${ req.user.name }`;
 });
 
 // Start micro and listen
