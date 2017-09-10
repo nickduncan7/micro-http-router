@@ -76,6 +76,11 @@ Added `before` option to route options. This serves as a single layer of middlew
 const micro = require('micro');
 const Router = require('micro-http-router');
 
+const beforeHandler = function (req, res) {
+    req.user = {};
+    req.user.name = 'John Doe';
+};
+
 // Initialize the router
 const router = new Router();
 
