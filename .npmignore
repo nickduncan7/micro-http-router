@@ -40,3 +40,4 @@ coverage
 .yarn-integrity
 
 example.js
+before.js

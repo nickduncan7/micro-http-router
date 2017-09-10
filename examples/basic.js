@@ -1,5 +1,5 @@
 const micro = require('micro');
-const Router = require('./');
+const Router = require('../');
 
 // Initialize the router
 const router = new Router();
