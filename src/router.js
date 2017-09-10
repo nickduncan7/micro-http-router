@@ -30,16 +30,16 @@ module.exports = exports = class Router {
             route = {
                 path: options.path,
                 methods: {}
-            };
-
-            const method = {
-                handler: options.handler
-            }
-
-            route.methods[options.method.toLowerCase()] = method;
+            };         
 
             this[routerSymbol].insert(route);
         }; 
+
+        const method = {
+            handler: options.handler
+        }
+
+        route.methods[options.method.toLowerCase()] = method;
 
         if (options.before) {
             assert(typeof options.before === 'function');
