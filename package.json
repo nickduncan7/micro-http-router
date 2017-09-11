@@ -1,6 +1,6 @@
 {
   "name": "micro-http-router",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A tiny, simple, fast and easy router package for Micro.",
   "main": "index.js",
   "scripts": {

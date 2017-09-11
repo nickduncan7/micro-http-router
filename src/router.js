@@ -74,7 +74,7 @@ module.exports = exports = class Router {
     /**
      * Chains a HTTP "GET" route handler to the router object.
      * @param {String} path 
-     * @param {Function} f1
+     * @param {Function} fn1
      * @param {Function} fn2
      */
     get(path, fn1, fn2) {
@@ -84,7 +84,7 @@ module.exports = exports = class Router {
     /**
      * Chains a HTTP "POST" route handler to the router object.
      * @param {String} path 
-     * @param {Function} f1
+     * @param {Function} fn1
      * @param {Function} fn2
      */
     post(path, fn1, fn2) {
@@ -94,7 +94,7 @@ module.exports = exports = class Router {
     /**
      * Chains a HTTP "PUT" route handler to the router object.
      * @param {String} path 
-     * @param {Function} f1
+     * @param {Function} fn1
      * @param {Function} fn2
      */
     put(path, fn1, fn2) {
@@ -104,7 +104,7 @@ module.exports = exports = class Router {
     /**
      * Chains a HTTP "DELETE" route handler to the router object.
      * @param {String} path 
-     * @param {Function} f1
+     * @param {Function} fn1
      * @param {Function} fn2
      */
     delete(path, fn1, fn2) {

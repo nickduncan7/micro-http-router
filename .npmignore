@@ -39,5 +39,8 @@ coverage
 # Yarn Integrity file
 .yarn-integrity
 
+.gitattributes
 example.js
 before.js
+.travis.yml
+test.js
