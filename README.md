@@ -69,7 +69,12 @@ server.listen(port);
 console.log(`micro is listening on port: ${ port }`);
 ```
 
-## Changelog (1.0.1 => 1.1.0)
+## Changelog (1.0.1 => 1.2.0)
+
+##### New in 1.2.0
+Add `debug: true` to the router options object to enable debug logging. Any thrown errors will have their error messages returned as the response body. Useful when developing with micro-http-router and you are unexpectedly receiving 500 Internal Server Errors.
+
+##### New in 1.1.0
 Added `before` option to route options. This serves as a single layer of middleware allowing you to do the following:
 
 ```javascript

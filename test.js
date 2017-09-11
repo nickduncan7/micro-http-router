@@ -105,7 +105,7 @@ test('strict mode works correctly', async t => {
 
     // Listen to the service and make the request to route '/'
     const url = await listen(service);
-    const response = await request(`${ url }/strict`);
+    let response = await request(`${ url }/strict`);
 
     // Perform the test check
     t.deepEqual(JSON.parse(response).success, true);
@@ -397,6 +397,39 @@ test('before request using http method shorthand works correctly', async t => {
 
     // Perform the test check
     t.deepEqual(response, 'foobar');
+
+    // Close the service
+    service.close();
+});
+
+test('debug error logging is successful', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router({
+        debug: true
+    });
+    const errorMessage = 'test error';
+
+    // Configure the routes
+    router.get('/', (req, res) => {
+        throw new Error(errorMessage);
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/'
+    const url = await listen(service);
+
+    try {
+        await request(url);
+    } catch (e) {
+        console.log(e.message);
+        if (e && e.statusCode && e.statusCode === 500 && e.message.indexOf(errorMessage) !== -1) {
+            t.pass();
+        } else {
+            t.fail();
+        }
+    }
 
     // Close the service
     service.close();

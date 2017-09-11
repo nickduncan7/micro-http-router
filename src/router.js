@@ -17,7 +17,7 @@ const routeOptionsHelper = function (path, method, fn1, fn2) {
     if (fn2) {
         options.before = fn1;
         options.handler = fn2;
-    } 
+    }
     else {
         options.handler = fn1;
     }
@@ -29,6 +29,8 @@ module.exports = exports = class Router {
     constructor(options) {
         // Add new instance of RadixRouter
         this[routerSymbol] = new RadixRouter({ strict: options && options.strict });
+
+        this.debug = options && options.debug;
     }
 
     /**
@@ -38,7 +40,7 @@ module.exports = exports = class Router {
     route(options) {
         assert(options, 'You must provide a valid route options object.')
         assert(options.path, 'You must provide a valid path.');
-        assert(options.method, 'You must provide a valid route handler function.');        
+        assert(options.method, 'You must provide a valid route handler function.');
         assert(options.handler, 'You must provide a valid route handler function.');
 
         const existingRoute = this[routerSymbol].lookup(options.path);
@@ -49,10 +51,10 @@ module.exports = exports = class Router {
             route = {
                 path: options.path,
                 methods: {}
-            };         
+            };
 
             this[routerSymbol].insert(route);
-        }; 
+        };
 
         const method = {
             handler: options.handler
@@ -161,7 +163,10 @@ module.exports = exports = class Router {
                 send(res, 200, result);
                 return;
             } catch (e) {
-                send(res, 500);
+                let data = null;
+                if (this.debug)
+                    data = e.message;
+                send(res, 500, data);
                 return;
             }
         } else {
