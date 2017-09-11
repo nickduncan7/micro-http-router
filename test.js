@@ -423,7 +423,6 @@ test('debug error logging is successful', async t => {
     try {
         await request(url);
     } catch (e) {
-        console.log(e.message);
         if (e && e.statusCode && e.statusCode === 500 && e.message.indexOf(errorMessage) !== -1) {
             t.pass();
         } else {
