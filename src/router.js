@@ -1,6 +1,6 @@
 'use strict';
 
-const { send } = require('micro');
+const { send, createError } = require('micro');
 const RadixRouter = require('radix-router');
 const assert = require('assert');
 
@@ -170,8 +170,7 @@ module.exports = exports = class Router {
                 return;
             }
         } else {
-            send(res, 404, 'Route not found.');
-            return;
+            throw createError(404, 'Route not found');
         }
     }
 };
