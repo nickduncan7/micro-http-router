@@ -298,10 +298,10 @@ test('request parameters are mapped correctly', async t => {
     // Configure the route
     router.get('/:zero/:one/:two/:three', (req, res) => {
         micro.send(res, 200, [
-            req.params[0],
-            req.params[1],
-            req.params[2],
-            req.params[3]
+            req.params.zero,
+            req.params.one,
+            req.params.two,
+            req.params.three
         ]);
     });
 
@@ -312,6 +312,7 @@ test('request parameters are mapped correctly', async t => {
     const url = await listen(service);
 
     const response = await request(`${ url }/zero/one/two/three`);
+    console.log(response);
     t.deepEqual(JSON.parse(response)[0], 'zero');
     t.deepEqual(JSON.parse(response)[1], 'one');
     t.deepEqual(JSON.parse(response)[2], 'two');
@@ -327,7 +328,7 @@ test('request parameters load test', async t => {
 
     // Configure the route
     router.get('/:number', (req, res) => {
-        micro.send(res, 200, req.params[0]);
+        micro.send(res, 200, req.params.number);
     });
 
     // Create the service
