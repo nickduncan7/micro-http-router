@@ -165,7 +165,7 @@ module.exports = exports = class Router {
             } catch (e) {
                 let data = null;
                 if (this.debug)
-                    data = e.message;
+                    data = `${e.name}: ${e.message}\n${e.stack}`;
                 send(res, 500, data);
                 return;
             }
