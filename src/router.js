@@ -3,6 +3,7 @@
 const { send, createError } = require('micro');
 const RadixRouter = require('radix-router');
 const assert = require('assert');
+const url = require('url');
 
 const routerSymbol = Symbol();
 
@@ -147,7 +148,8 @@ module.exports = exports = class Router {
      * @param {object} res http.serverResponse
      */
     async handle(req, res) {
-        const route = this[routerSymbol].lookup(req.url);
+        const { pathname } = url.parse(req.url);
+        const route = this[routerSymbol].lookup(pathname);
 
         if (route && req.method.toLowerCase() in route.methods) {
             try {
