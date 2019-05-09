@@ -147,13 +147,17 @@ module.exports = exports = class Router {
      * @param {object} res http.serverResponse
      */
     async handle(req, res) {
-        const route = this[routerSymbol].lookup(req.url);
+        const reqURL = new URL(req.url, 'http://example.com/');
+        const route = this[routerSymbol].lookup(reqURL.pathname);
 
         if (route && req.method.toLowerCase() in route.methods) {
             try {
                 const methodObj = route.methods[req.method.toLowerCase()];
                 // Set the params if we have any
                 if (route.params) req.params = route.params;
+
+                // set query parameters as well
+                req.searchParams = reqURL.searchParams;
 
                 // Run the before function if one is configured
                 if (methodObj.before) methodObj.before(req, res);

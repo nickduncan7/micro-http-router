@@ -69,7 +69,10 @@ server.listen(port);
 console.log(`micro is listening on port: ${ port }`);
 ```
 
-## Changelog (1.2.1 => 1.3.0)
+## Changelog (1.3.0 => 1.4.0)
+
+##### New in 1.4.0
+Added support for query parameters using WHATWG URL API. The WHATWG URL `.searchParams` object gets transplanted onto the `request` object as `.searchParams` as well for a familiar API for retrieving and manipulating those query parameters.
 
 ##### New in 1.3.0
 Updated dependencies, including radix-router. The only major change is that in place of a request parameter array, the parameters are added to the `req.params` object in a named fashion. If you define a route as `'/:id'`, instead of using `req.params[0]` to get the passed in ID, you can simply use `req.params.id`. Additionally, merged in [PR #3](https://github.com/protocol114/micro-http-router/pull/3) which adds a full stack trace to the error output when `debug` is set to `true`.
