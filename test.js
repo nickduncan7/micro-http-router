@@ -458,3 +458,38 @@ test('route with query params works', async t => {
     // Close the service
     service.close();
 });
+
+test('route can be deregistered successfully', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the routes
+    router.get('/', (req, res) => {
+        micro.send(res, 200, {
+            success: true
+        });
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/'
+    const url = await listen(service);
+    await request(url);
+
+    router.unroute('/',  'GET');
+
+    // Perform the test check - route should no longer be registered
+    try {
+        await request(url);
+    } catch (e) {
+        if (e && e.statusCode && e.statusCode === 404) {
+            t.pass();
+        } else {
+            t.fail();
+        }
+    }
+
+    // Close the service
+    service.close();
+});

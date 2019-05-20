@@ -74,6 +74,22 @@ console.log(`micro is listening on port: ${ port }`);
 ##### New in 1.4.0
 Added support for query parameters using WHATWG URL API. The WHATWG URL `.searchParams` object gets transplanted onto the `request` object as `.searchParams` as well for a familiar API for retrieving and manipulating those query parameters.
 
+Also added `unroute(path, method)` function to therouter that can be called to delete route handlers, if necessary. It can be used in this manner:
+
+```javascript
+// Configure a basic get route
+router.get('/', (req, res) => {
+    micro.send(res, 200, {
+        success: true
+    });
+});
+
+// don't want the route? call router.unroute(path, method)!
+router.unroute('/',  'GET');
+
+// Now subsequent calls to that route and method will fail, as it no longer exists. 👍
+```
+
 ##### New in 1.3.0
 Updated dependencies, including radix-router. The only major change is that in place of a request parameter array, the parameters are added to the `req.params` object in a named fashion. If you define a route as `'/:id'`, instead of using `req.params[0]` to get the passed in ID, you can simply use `req.params.id`. Additionally, merged in [PR #3](https://github.com/protocol114/micro-http-router/pull/3) which adds a full stack trace to the error output when `debug` is set to `true`.
 
