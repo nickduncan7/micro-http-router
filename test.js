@@ -312,7 +312,6 @@ test('request parameters are mapped correctly', async t => {
     const url = await listen(service);
 
     const response = await request(`${ url }/zero/one/two/three`);
-    console.log(response);
     t.deepEqual(JSON.parse(response)[0], 'zero');
     t.deepEqual(JSON.parse(response)[1], 'one');
     t.deepEqual(JSON.parse(response)[2], 'two');
@@ -425,6 +424,66 @@ test('debug error logging is successful', async t => {
         await request(url);
     } catch (e) {
         if (e && e.statusCode && e.statusCode === 500 && e.message.indexOf(errorMessage) !== -1) {
+            t.pass();
+        } else {
+            t.fail();
+        }
+    }
+
+    // Close the service
+    service.close();
+});
+
+test('route with query params works', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the routes
+    router.get('/', (req, res) => {
+        micro.send(res, 200, {
+            hello: req.searchParams.get('hello')
+        });
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/'
+    const url = await listen(service);
+    const response = await request(`${url}/?hello=world` );
+
+    // Perform the test check
+    t.deepEqual(JSON.parse(response).hello, 'world');
+
+    // Close the service
+    service.close();
+});
+
+test('route can be deregistered successfully', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the routes
+    router.get('/', (req, res) => {
+        micro.send(res, 200, {
+            success: true
+        });
+    });
+
+    // Create the service
+    const service = micro((req, res) => router.handle(req, res));
+
+    // Listen to the service and make the request to route '/'
+    const url = await listen(service);
+    await request(url);
+
+    router.unroute('/',  'GET');
+
+    // Perform the test check - route should no longer be registered
+    try {
+        await request(url);
+    } catch (e) {
+        if (e && e.statusCode && e.statusCode === 404) {
             t.pass();
         } else {
             t.fail();

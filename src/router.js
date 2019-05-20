@@ -1,6 +1,6 @@
 'use strict';
 
-const { send, createError } = require('micro');
+const {send, createError} = require('micro');
 const RadixRouter = require('radix-router');
 const assert = require('assert');
 
@@ -17,8 +17,7 @@ const routeOptionsHelper = function (path, method, fn1, fn2) {
     if (fn2) {
         options.before = fn1;
         options.handler = fn2;
-    }
-    else {
+    } else {
         options.handler = fn1;
     }
 
@@ -28,7 +27,7 @@ const routeOptionsHelper = function (path, method, fn1, fn2) {
 module.exports = exports = class Router {
     constructor(options) {
         // Add new instance of RadixRouter
-        this[routerSymbol] = new RadixRouter({ strict: options && options.strict });
+        this[routerSymbol] = new RadixRouter({strict: options && options.strict});
 
         this.debug = options && options.debug;
     }
@@ -38,7 +37,7 @@ module.exports = exports = class Router {
      * @param {object} options The route information and handler
      */
     route(options) {
-        assert(options, 'You must provide a valid route options object.')
+        assert(options, 'You must provide a valid route options object.');
         assert(options.path, 'You must provide a valid path.');
         assert(options.method, 'You must provide a valid route handler function.');
         assert(options.handler, 'You must provide a valid route handler function.');
@@ -54,13 +53,11 @@ module.exports = exports = class Router {
             };
 
             this[routerSymbol].insert(route);
-        };
-
-        const method = {
-            handler: options.handler
         }
 
-        route.methods[options.method.toLowerCase()] = method;
+        route.methods[options.method.toLowerCase()] = {
+            handler: options.handler
+        };
 
         if (options.before) {
             assert(typeof options.before === 'function');
@@ -72,8 +69,39 @@ module.exports = exports = class Router {
     }
 
     /**
+     * Deregisters a route with the specified path and method.
+     * @param path The desired path to deregister.
+     * @param method The desired method to deregister.
+     */
+    unroute(path, method) {
+        assert(path, 'You must provide a valid path.');
+        assert(method, 'You must provide a valid route handler function.');
+
+        method = method.toLowerCase();
+
+        const existingRoute = this[routerSymbol].lookup(path);
+        let route = {};
+        if (existingRoute) {
+            route = existingRoute;
+            this[routerSymbol].remove(path);
+        } else {
+            throw createError(400, `Route with path '${path}' not found to unroute.`);
+        }
+
+        console.log(route.methods);
+
+        if (route.methods[method]) {
+            delete route.methods[method];
+        } else {
+            throw createError(400, `Method ${method.toUpperCase()} "${path}" not found to unroute.`);
+        }
+
+        return this;
+    }
+
+    /**
      * Chains a HTTP "GET" route handler to the router object.
-     * @param {String} path 
+     * @param {String} path
      * @param {Function} fn1
      * @param {Function} fn2
      */
@@ -83,7 +111,7 @@ module.exports = exports = class Router {
 
     /**
      * Chains a HTTP "POST" route handler to the router object.
-     * @param {String} path 
+     * @param {String} path
      * @param {Function} fn1
      * @param {Function} fn2
      */
@@ -93,7 +121,7 @@ module.exports = exports = class Router {
 
     /**
      * Chains a HTTP "PUT" route handler to the router object.
-     * @param {String} path 
+     * @param {String} path
      * @param {Function} fn1
      * @param {Function} fn2
      */
@@ -103,7 +131,7 @@ module.exports = exports = class Router {
 
     /**
      * Chains a HTTP "DELETE" route handler to the router object.
-     * @param {String} path 
+     * @param {String} path
      * @param {Function} fn1
      * @param {Function} fn2
      */
@@ -113,7 +141,7 @@ module.exports = exports = class Router {
 
     /**
      * Chains a HTTP "OPTIONS" route handler to the router object.
-     * @param {String} path 
+     * @param {String} path
      * @param {Function} fn1
      * @param {Function} fn2
      */
@@ -123,7 +151,7 @@ module.exports = exports = class Router {
 
     /**
      * Chains a HTTP "TRACE" route handler to the router object.
-     * @param {String} path 
+     * @param {String} path
      * @param {Function} fn1
      * @param {Function} fn2
      */
@@ -133,7 +161,7 @@ module.exports = exports = class Router {
 
     /**
      * Chains a HTTP "PATCH" route handler to the router object.
-     * @param {String} path 
+     * @param {String} path
      * @param {Function} fn1
      * @param {Function} fn2
      */
@@ -147,7 +175,8 @@ module.exports = exports = class Router {
      * @param {object} res http.serverResponse
      */
     async handle(req, res) {
-        const route = this[routerSymbol].lookup(req.url);
+        const reqURL = new URL(req.url, 'http://localhost/');
+        const route = this[routerSymbol].lookup(reqURL.pathname);
 
         if (route && req.method.toLowerCase() in route.methods) {
             try {
@@ -155,19 +184,20 @@ module.exports = exports = class Router {
                 // Set the params if we have any
                 if (route.params) req.params = route.params;
 
+                // set query parameters as well
+                req.searchParams = reqURL.searchParams;
+
                 // Run the before function if one is configured
                 if (methodObj.before) methodObj.before(req, res);
 
                 // Finally, handle the result
                 const result = await methodObj.handler(req, res);
                 send(res, 200, result);
-                return;
             } catch (e) {
                 let data = null;
                 if (this.debug)
                     data = `${e.name}: ${e.message}\n${e.stack}`;
                 send(res, 500, data);
-                return;
             }
         } else {
             throw createError(404, 'Route not found');
