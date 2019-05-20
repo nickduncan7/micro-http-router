@@ -30,6 +30,8 @@ module.exports = exports = class Router {
         this[routerSymbol] = new RadixRouter({strict: options && options.strict});
 
         this.debug = options && options.debug;
+
+        this.routes = {};
     }
 
     /**
@@ -41,6 +43,10 @@ module.exports = exports = class Router {
         assert(options.path, 'You must provide a valid path.');
         assert(options.method, 'You must provide a valid route handler function.');
         assert(options.handler, 'You must provide a valid route handler function.');
+
+        // Sanitize options
+        options.path = options.path.toLowerCase();
+        options.method = options.method.toUpperCase();
 
         const existingRoute = this[routerSymbol].lookup(options.path);
         let route = {};
@@ -55,14 +61,25 @@ module.exports = exports = class Router {
             this[routerSymbol].insert(route);
         }
 
-        route.methods[options.method.toLowerCase()] = {
+        if (options.path in this.routes) {
+            const existingMethodIdx = this.routes[options.path].findIndex((method) => method === options.method);
+
+            if (existingMethodIdx === -1) {
+                this.routes[options.path].push(options.method);
+                this.routes[options.path].sort();
+            }
+        } else {
+            this.routes[options.path] = [options.method];
+        }
+
+        route.methods[options.method] = {
             handler: options.handler
         };
 
         if (options.before) {
             assert(typeof options.before === 'function');
 
-            route.methods[options.method.toLowerCase()].before = options.before;
+            route.methods[options.method].before = options.before;
         }
 
         return this;
@@ -70,14 +87,14 @@ module.exports = exports = class Router {
 
     /**
      * Deregisters a route with the specified path and method.
-     * @param path The desired path to deregister.
-     * @param method The desired method to deregister.
+     * @param {string} path The desired path to deregister.
+     * @param {string} method The desired method to deregister.
      */
     unroute(path, method) {
         assert(path, 'You must provide a valid path.');
         assert(method, 'You must provide a valid route handler function.');
 
-        method = method.toLowerCase();
+        method = method.toUpperCase();
 
         const existingRoute = this[routerSymbol].lookup(path);
         let route = {};
@@ -85,18 +102,27 @@ module.exports = exports = class Router {
             route = existingRoute;
             this[routerSymbol].remove(path);
         } else {
-            throw createError(400, `Route with path '${path}' not found to unroute.`);
+            throw new Error(`Route with path '${path}' not found to unroute.`);
         }
-
-        console.log(route.methods);
 
         if (route.methods[method]) {
             delete route.methods[method];
         } else {
-            throw createError(400, `Method ${method.toUpperCase()} "${path}" not found to unroute.`);
+            throw new Error(`Route ${method} "${path}" not found to unroute.`);
         }
 
         return this;
+    }
+
+    /**
+     * Deregisters all currently defined routes in the router.
+     */
+    unrouteAll() {
+        for (let path in this.routes) {
+            this[routerSymbol].remove(path);
+
+            delete this.routes[path];
+        }
     }
 
     /**
@@ -178,9 +204,11 @@ module.exports = exports = class Router {
         const reqURL = new URL(req.url, 'http://localhost/');
         const route = this[routerSymbol].lookup(reqURL.pathname);
 
-        if (route && req.method.toLowerCase() in route.methods) {
+        req.method = req.method.toUpperCase();
+
+        if (route && req.method in route.methods) {
             try {
-                const methodObj = route.methods[req.method.toLowerCase()];
+                const methodObj = route.methods[req.method];
                 // Set the params if we have any
                 if (route.params) req.params = route.params;
 

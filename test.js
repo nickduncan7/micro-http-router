@@ -493,3 +493,74 @@ test('route can be deregistered successfully', async t => {
     // Close the service
     service.close();
 });
+
+test('invalid route cannot be deregistered', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the routes
+    router.get('/', (req, res) => {
+        micro.send(res, 200, {
+            success: true
+        });
+    });
+
+    // Perform the test check - unroute should fail
+    try {
+        router.unroute('/foo',  'GET');
+    } catch (e) {
+        t.pass();
+    }
+});
+
+test('invalid route method cannot be deregistered', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the routes
+    router.get('/', (req, res) => {
+        micro.send(res, 200, {
+            success: true
+        });
+    });
+
+    // Perform the test check - unroute should fail
+    try {
+        router.unroute('/',  'POST');
+    } catch (e) {
+        t.pass();
+    }
+});
+
+test('unrouteAll method deregisters all routes successfully', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the routes
+    router.get('/foo', (req, res) => {
+        micro.send(res, 200, 'foo');
+    });
+    router.get('/bar', (req, res) => {
+        micro.send(res, 200, 'bar');
+    });
+    router.get('/baz', (req, res) => {
+        micro.send(res, 200, 'baz');
+    });
+    router.get('/qux', (req, res) => {
+        micro.send(res, 200, 'qux');
+    });
+
+    // Perform test check - router should have 4 routes
+    if (Object.keys(router.routes).length === 4) {
+
+        router.unrouteAll();
+        // Router should now have zero routes
+        if (Object.keys(router.routes).length === 0) {
+            t.pass();
+        } else {
+            t.fail();
+        }
+    } else {
+        t.fail();
+    }
+});
