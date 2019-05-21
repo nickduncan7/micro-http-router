@@ -44,3 +44,6 @@ example.js
 before.js
 .travis.yml
 test.js
+
+.idea
+examples
