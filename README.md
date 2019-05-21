@@ -69,7 +69,10 @@ server.listen(port);
 console.log(`micro is listening on port: ${ port }`);
 ```
 
-## Changelog (1.3.0 => 1.5.0)
+## Changelog (1.3.0 => 1.5.1)
+
+##### New in 1.5.1
+Fixed some potential issues with the unrouting functionality. Upgraded dependencies to remove potential vulnerabilities.
 
 ##### New in 1.5.0
 Added support for query parameters using WHATWG URL API. The WHATWG URL `.searchParams` object gets transplanted onto the `request` object as `.searchParams` as well for a familiar API for retrieving and manipulating those query parameters.

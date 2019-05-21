@@ -100,13 +100,19 @@ module.exports = exports = class Router {
         let route = {};
         if (existingRoute) {
             route = existingRoute;
-            this[routerSymbol].remove(path);
         } else {
             throw new Error(`Route with path '${path}' not found to unroute.`);
         }
 
-        if (route.methods[method]) {
+        const existingMethodIdx = this.routes[path].findIndex((pathMethod) => pathMethod === method);
+        if (route.methods[method] && existingMethodIdx !== -1) {
             delete route.methods[method];
+            this.routes[path].splice(existingMethodIdx, 1);
+
+            if (this.routes[path].length === 0) {
+                delete this.routes[path];
+                this[routerSymbol].remove(path);
+            }
         } else {
             throw new Error(`Route ${method} "${path}" not found to unroute.`);
         }
@@ -119,9 +125,9 @@ module.exports = exports = class Router {
      */
     unrouteAll() {
         for (let path in this.routes) {
-            this[routerSymbol].remove(path);
-
-            delete this.routes[path];
+            this.routes[path].forEach((method) => {
+                this.unroute(path, method);
+            });
         }
     }
 

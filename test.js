@@ -1,9 +1,9 @@
-const { test } = require('ava');
-const micro = require('micro');
-const listen = require('test-listen');
-const request = require('request-promise');
-const sleep = require('sleep-promise');
-const Router = require('./');
+import test from "ava";
+import micro from "micro";
+import listen from "test-listen";
+import request from "request-promise";
+import sleep from "sleep-promise";
+import Router from "./";
 
 test('simple request handled successfully', async t => {
     // Create new instance of micro-http-router
@@ -556,6 +556,33 @@ test('unrouteAll method deregisters all routes successfully', async t => {
         router.unrouteAll();
         // Router should now have zero routes
         if (Object.keys(router.routes).length === 0) {
+            t.pass();
+        } else {
+            t.fail();
+        }
+    } else {
+        t.fail();
+    }
+});
+
+test('unroute does not delete path if methods still exist after unrouting', async t => {
+    // Create new instance of micro-http-router
+    const router = new Router();
+
+    // Configure the routes
+    router.get('/foo', (req, res) => {
+        micro.send(res, 200, 'foo');
+    });
+    router.post('/foo', (req, res) => {
+        micro.send(res, 200, 'foo');
+    });
+
+    // Perform test check
+    if (Object.keys(router.routes).length === 1) {
+
+        router.unroute('/foo', 'POST');
+        // Router should still have one route
+        if (Object.keys(router.routes).length === 1 && router.routes['/foo'].length === 1) {
             t.pass();
         } else {
             t.fail();
